@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Caesar Cipher Puzzle Game</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            text-align: center;
+            background: url('https://lockpaperscissors.co/wp-content/uploads/old-typewriter-1.png') no-repeat center center fixed;
+            background-size: cover;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #007acc;
+        }
+        .button-group {
+            margin-top: 20px;
+        }
+        .button-group button {
+            margin: 10px;
+            padding: 15px 30px;
+            border-radius: 5px;
+            border: none;
+            background-color: #007acc;
+            color: #fff;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .button-group button:hover {
+            background-color: #005f99;
+        }
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+            display: none;
+            opacity: 0;
+            transform: scale(0.9);
+            transition: opacity 0.3s, transform 0.3s;
+        }
+        .popup.show {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+        .popup button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background-color: #007acc;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .popup button:hover {
+            background-color: #005f99;
+        }
+        .input-field input {
+            padding: 10px;
+            margin-top: 10px;
+            width: 80%;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Caesar Cipher Puzzle Game</h1>
+        <div id="game">
+            <p>Choose an option:</p>
+            <div class="button-group">
+                <button onclick="startEncryption()">Encrypt a message</button>
+                <button onclick="startDecryption()">Decrypt a message</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="popup" id="popup">
+        <p id="popupMessage"></p>
+        <button onclick="closePopup()">Close</button>
+    </div>
+
+    <script>
+        const messages = [
+            "Java programming is fun",
+            "Hello World",
+            "OpenAI creates AI!",
+            "Caesar cipher is cool"
+        ];
+        const shifts = [5, 3, 7, 9];
+        let currentLevel = 1;
+        const maxLevel = 4;
+
+        function caesarCipher(str, shift) {
+            return str.split('').map(char => {
+                if (char.match(/[a-z]/i)) {
+                    const code = char.charCodeAt();
+                    const base = code >= 65 && code <= 90 ? 65 : 97;
+                    return String.fromCharCode(((code - base + shift) % 26 + 26) % 26 + base);
+                }
+                return char;
+            }).join('');
+        }
+
+        function startEncryption() {
+            currentLevel = 1;
+            nextEncryptionLevel();
+        }
+
+        function startDecryption() {
+            currentLevel = 1;
+            nextDecryptionLevel();
+        }
+
+        function nextEncryptionLevel() {
+            if (currentLevel > maxLevel) {
+                showPopup('Congratulations! You\'ve completed all encryption levels!');
+                return;
+            }
+            const puzzleMessage = messages[currentLevel - 1];
+            const shiftValue = shifts[currentLevel - 1];
+            const gameDiv = document.getElementById('game');
+            gameDiv.innerHTML = `
+                <p>Starting Level ${currentLevel}...</p>
+                <p>Encrypt the following message: ${puzzleMessage}</p>
+                <p>Use the shift value: ${shiftValue}</p>
+                <div class="input-field">
+                    <input type="text" id="user-input" placeholder="Enter the encrypted message">
+                </div>
+                <button onclick="checkEncryptionAnswer()">Submit</button>
+                <div class="result" id="result"></div>
+            `;
+        }
+
+        function checkEncryptionAnswer() {
+            const userInput = document.getElementById('user-input').value.trim().toLowerCase();
+            const puzzleMessage = messages[currentLevel - 1];
+            const shiftValue = shifts[currentLevel - 1];
+            const correctAnswer = caesarCipher(puzzleMessage, shiftValue).toLowerCase();
+
+            const resultDiv = document.getElementById('result');
+            if (userInput === correctAnswer) {
+                resultDiv.innerText = 'Congratulations! You encrypted it correctly.';
+                currentLevel++;
+                setTimeout(nextEncryptionLevel, 2000);
+            } else {
+                resultDiv.innerText = `Incorrect! The correct encrypted message is: ${correctAnswer}`;
+            }
+        }
+
+        function nextDecryptionLevel() {
+            if (currentLevel > maxLevel) {
+                showPopup('Congratulations! You\'ve completed all decryption levels!');
+                return;
+            }
+            const puzzleMessage = messages[currentLevel - 1];
+            const shiftValue = shifts[currentLevel - 1];
+            const encryptedMessage = caesarCipher(puzzleMessage, shiftValue);
+            const gameDiv = document.getElementById('game');
+            gameDiv.innerHTML = `
+                <p>Starting Level ${currentLevel}...</p>
+                <p>Decrypt the following message: ${encryptedMessage}</p>
+                <div class="input-field">
+                    <input type="number" id="user-shift" placeholder="Enter the shift value">
+                </div>
+                <button onclick="checkDecryptionAnswer()">Submit</button>
+                <div class="result" id="result"></div>
+            `;
+        }
+
+        function checkDecryptionAnswer() {
+            const userShift = parseInt(document.getElementById('user-shift').value);
+            const puzzleMessage = messages[currentLevel - 1];
+            const shiftValue = shifts[currentLevel - 1];
+            const encryptedMessage = caesarCipher(puzzleMessage, shiftValue);
+            const decryptedMessage = caesarCipher(encryptedMessage, 26 - userShift).toLowerCase();
+
+            const resultDiv = document.getElementById('result');
+            if (decryptedMessage === puzzleMessage.toLowerCase()) {
+                resultDiv.innerText = 'Congratulations! You decrypted it correctly.';
+                currentLevel++;
+                setTimeout(nextDecryptionLevel, 2000);
+            } else {
+                resultDiv.innerText = `Incorrect! The correct shift value was: ${shiftValue} and the original message was: ${puzzleMessage}`;
+            }
+        }
+
+        function showPopup(message) {
+            const popup = document.getElementById('popup');
+            const popupMessage = document.getElementById('popupMessage');
+            popupMessage.innerText = message;
+            popup.classList.add('show');
+        }
+
+        function closePopup() {
+            const popup = document.getElementById('popup');
+            popup.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
